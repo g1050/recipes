@@ -99,6 +99,7 @@ class StockFactory : boost::noncopyable
 
 }
 
+/* 版本三 */
 namespace version3
 {
 
@@ -116,6 +117,7 @@ class StockFactory : boost::noncopyable
             {
                 pStock.reset(new Stock(key),
                              boost::bind(&StockFactory::deleteStock, this, _1));//把this指针给了function,如果StackFactory先于Stock析构,会出问题
+                /* 如果StockFactory声明周期比Stock短 */
                 wkStock = pStock;//更新了map里的stock
             }
             return pStock;
@@ -143,6 +145,7 @@ class StockFactory : boost::noncopyable
 
 }
 
+/* 版本四 */
 namespace version4
 {
 
@@ -159,6 +162,7 @@ class StockFactory : public boost::enable_shared_from_this<StockFactory>,
             pStock = wkStock.lock();
             if (!pStock)
             {
+                //此处换用了shared_ptr智能this指针
                 pStock.reset(new Stock(key),
                              boost::bind(&StockFactory::deleteStock,
                                          shared_from_this(),
@@ -186,6 +190,7 @@ class StockFactory : public boost::enable_shared_from_this<StockFactory>,
 
 }
 
+/* 版本五 */
 class StockFactory : public boost::enable_shared_from_this<StockFactory>,
     boost::noncopyable
 {
@@ -208,11 +213,12 @@ public:
     }
 
 private:
+    //若回调
     static void weakDeleteCallback(const boost::weak_ptr<StockFactory>& wkFactory,
                                    Stock* stock)
     {
         printf("weakDeleteStock[%p]\n", stock);
-        boost::shared_ptr<StockFactory> factory(wkFactory.lock());
+        boost::shared_ptr<StockFactory> factory(wkFactory.lock());//尝试提升
         if (factory)
         {
             factory->removeStock(stock);
@@ -274,8 +280,8 @@ int main()
     version2::StockFactory sf2;
     version3::StockFactory sf3;
 
-    /* boost::shared_ptr<version3::StockFactory> sf4(new version3::StockFactory); */
-    /* boost::shared_ptr<StockFactory> sf5(new StockFactory); */
+    boost::shared_ptr<version3::StockFactory> sf4(new version3::StockFactory);
+    boost::shared_ptr<StockFactory> sf5(new StockFactory);//版本五没有命名空间
 
     {
         boost::shared_ptr<Stock> s2 = sf2.get("stock2");
@@ -300,15 +306,19 @@ int main()
     }
     std::cout << "sf3: size=" << sf3.getSize() << std::endl;
 
-    /* { */
-    /* boost::shared_ptr<Stock> s4 = sf4->get("stock4"); */
-    /* } */
+    {
+        boost::shared_ptr<Stock> s4 = sf4->get("stock4");
+    }
 
-    /* { */
-    /* boost::shared_ptr<Stock> s5 = sf5->get("stock5"); */
-    /* } */
+    {
+        boost::shared_ptr<Stock> s5 = sf5->get("stock5");
+    }
 
-    /* testLongLifeFactory(); */
-    /* testShortLifeFactory(); */
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << std::endl;
+
+    testLongLifeFactory();
+    testShortLifeFactory();
 
 }

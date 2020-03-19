@@ -1,10 +1,11 @@
 #include <algorithm>
 #include <vector>
 #include <stdio.h>
-#include "../Mutex.h"
+#include "muduo/base/Mutex.h"
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
+
 
 class Observable;
 
@@ -28,7 +29,7 @@ class Observable
 
   void notifyObservers()
   {
-    muduo::MutexLockGuard lock(mutex_);
+    muduo::MutexLockGuard lock(mutex_);//加锁，解决问题2
     Iterator it = observers_.begin();
     while (it != observers_.end())
     {
@@ -47,7 +48,7 @@ class Observable
   }
 
  private:
-  mutable muduo::MutexLock mutex_;
+  mutable muduo::MutexLock mutex_;//多了一个锁，解决静态问题
   std::vector<boost::weak_ptr<Observer> > observers_;
   typedef std::vector<boost::weak_ptr<Observer> >::iterator Iterator;
 };
@@ -59,7 +60,7 @@ Observer::~Observer()
 
 void Observer::observe(Observable* s)
 {
-  s->register_(shared_from_this());
+  s->register_(shared_from_this());//返回shared_ptr指针
   subject_ = s;
 }
 
