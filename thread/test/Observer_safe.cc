@@ -42,7 +42,7 @@ class Observable
       else
       {
         printf("notifyObservers() erase\n");
-        it = observers_.erase(it);
+        it = observers_.erase(it);//从vector中删除当前观察者,观察者已经析构
       }
     }
   }
@@ -53,18 +53,19 @@ class Observable
   typedef std::vector<boost::weak_ptr<Observer> >::iterator Iterator;
 };
 
-Observer::~Observer()
+//借助shared_ptr/weaak_ptr整个Observer不需要unregister,通过wea_ptr探究Observer的生死
+Observer::~Observer()//改变了在析构函数里调用unregister
 {
   // subject_->unregister(this);
 }
 
 void Observer::observe(Observable* s)
 {
-  s->register_(shared_from_this());//返回shared_ptr指针
+  s->register_(shared_from_this());//返回shared_ptr指针,给了目标一个shared_ptr类型的观察者指针
   subject_ = s;
 }
 
-void Observable::register_(boost::weak_ptr<Observer> x)
+void Observable::register_(boost::weak_ptr<Observer> x)//转化为weak_ptr
 {
   observers_.push_back(x);
 }
@@ -89,8 +90,8 @@ int main()
 {
   Observable subject;
   {
-    boost::shared_ptr<Foo> p(new Foo);
-    p->observe(&subject);
+    boost::shared_ptr<Foo> p(new Foo);//创建观察者,只要观察者不析构，目标就会通知
+    p->observe(&subject);//订阅
     subject.notifyObservers();
   }
   subject.notifyObservers();
