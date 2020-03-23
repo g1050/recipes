@@ -1,4 +1,6 @@
-#include "../Mutex.h"
+/* #include "../Mutex.h" */
+
+#include <muduo/base/Mutex.h>
 
 class Request
 {
@@ -11,7 +13,7 @@ class Request
 
   void print() const // __attribute__ ((noinline))
   {
-    muduo::MutexLockGuard lock(mutex_);
+    muduo::MutexLockGuard lock(mutex_);//同一线程多次加锁，导致死锁
   }
 
  private:

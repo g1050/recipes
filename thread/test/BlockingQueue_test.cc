@@ -11,7 +11,7 @@ class Test
 {
  public:
   Test(int numThreads)
-    : latch_(numThreads),
+   : latch_(numThreads),
       threads_(numThreads)
   {
     for (int i = 0; i < numThreads; ++i)

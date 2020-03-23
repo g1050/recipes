@@ -1,5 +1,9 @@
-#include "../Mutex.h"
-#include "../Thread.h"
+/* #include "../Mutex.h" */
+/* #include "../Thread.h" */
+
+#include <muduo/base/Mutex.h>
+#include <muduo/base/Thread.h>
+#include <boost/functional.hpp>
 #include <set>
 #include <stdio.h>
 
@@ -14,7 +18,7 @@ class Inventory
     requests_.insert(req);
   }
 
-  void remove(Request* req) __attribute__ ((noinline))
+  void remove(Request* req) __attribute__ ((noinline))//Inventory加锁
   {
     muduo::MutexLockGuard lock(mutex_);
     requests_.erase(req);
@@ -41,12 +45,12 @@ class Request
 
   ~Request() __attribute__ ((noinline))
   {
-    muduo::MutexLockGuard lock(mutex_);
+    g_inventory.remove(this);//先remove暂时解决了死锁问题
+    muduo::MutexLockGuard lock(mutex_);//Request加锁
     sleep(1);
-    g_inventory.remove(this);
   }
 
-  void print() const __attribute__ ((noinline))
+  void print() const __attribute__ ((noinline))//Request的print方法加锁
   {
     muduo::MutexLockGuard lock(mutex_);
     // ...
@@ -64,7 +68,7 @@ void Inventory::printAll() const
       it != requests_.end();
       ++it)
   {
-    (*it)->print();
+    (*it)->print();//又调用了request的print方法
   }
   printf("Inventory::printAll() unlocked\n");
 }
@@ -95,7 +99,9 @@ void threadFunc()
 
 int main()
 {
+  /* main线程和threadfunc线程互相锁住 */
   muduo::Thread thread(threadFunc);
+//Inventory加锁
   thread.start();
   usleep(500 * 1000);
   g_inventory.printAll();

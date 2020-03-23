@@ -145,6 +145,7 @@ class StockFactory : boost::noncopyable
 
 }
 
+
 /* 版本四 */
 namespace version4
 {
