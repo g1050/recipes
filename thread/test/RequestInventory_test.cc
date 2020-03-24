@@ -14,8 +14,9 @@ class Inventory
   {
   }
 
+  //操作requests_,清单类自己加锁
   void add(Request* req)
-  {
+  {//写时复制
     muduo::MutexLockGuard lock(mutex_);
     if (!requests_.unique())
     {
@@ -27,7 +28,7 @@ class Inventory
   }
 
   void remove(Request* req) // __attribute__ ((noinline))
-  {
+  {//写时复制
     muduo::MutexLockGuard lock(mutex_);
     if (!requests_.unique())
     {
@@ -72,6 +73,8 @@ class Request
     g_inventory.remove(this);
   }
 
+  //向全局添加自己
+  //需要给自己加锁
   void process() // __attribute__ ((noinline))
   {
     muduo::MutexLockGuard lock(mutex_);
@@ -79,6 +82,7 @@ class Request
     // ...
   }
 
+  //请求类自己加锁
   void print() const __attribute__ ((noinline))
   {
     muduo::MutexLockGuard lock(mutex_);
@@ -103,6 +107,7 @@ void Inventory::printAll() const
   }
 }
 
+//子线程从此处执行
 void threadFunc()
 {
   Request* req = new Request;
@@ -110,6 +115,8 @@ void threadFunc()
   delete req;
 }
 
+/* 两个线程加锁顺序相反,互相锁住 */
+/* Request对象析构时候的race condition? */
 int main()
 {
   muduo::Thread thread(threadFunc);

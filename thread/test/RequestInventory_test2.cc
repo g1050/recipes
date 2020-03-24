@@ -5,6 +5,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <stdio.h>
 
+/* 不清楚哪里有race dondititon */
 class Request;
 typedef boost::shared_ptr<Request> RequestPtr;
 

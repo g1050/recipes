@@ -38,6 +38,14 @@ void post(const Foo& f)
   g_foos->push_back(f);
 }
 
+/* 由于读端的foos一直在加，无限循环 */
+void post2(const Foo& f){
+    printf("post\n");
+    MutexLockGuard lock(mutex);
+    g_foos->push_back(f);
+}
+
+
 //读端,直接给引用结束加一
 void traverse()
 {
@@ -64,7 +72,8 @@ void traverse()
 void Foo::doit() const
 {
   Foo f;
-  post(f);
+  /* post(f); */
+  post2(f);
 }
 
 int main()

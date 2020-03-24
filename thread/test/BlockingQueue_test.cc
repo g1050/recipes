@@ -70,14 +70,18 @@ class Test
            muduo::CurrentThread::name());
   }
 
-  muduo::BlockingQueue<std::string> queue_;
+  muduo::BlockingQueue<std::string> queue_;//任务队列中,放的string类型对象?
   muduo::CountDownLatch latch_;
-  boost::ptr_vector<muduo::Thread> threads_;
+  boost::ptr_vector<muduo::Thread> threads_;//Thread类?
 };
+
 
 int main()
 {
+  //打印进程ID和当前线程ID
   printf("pid=%d, tid=%d\n", ::getpid(), muduo::CurrentThread::tid());
+
+  //暂时看不懂 --2020.2.24
   Test t(5);
   t.run(100);
   t.joinAll();
