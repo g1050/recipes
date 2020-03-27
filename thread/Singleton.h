@@ -8,6 +8,7 @@
 #ifndef MUDUO_BASE_SINGLETON_H
 #define MUDUO_BASE_SINGLETON_H
 
+//单例模式
 #include <boost/noncopyable.hpp>
 #include <pthread.h>
 #include <stdlib.h> // atexit
@@ -19,7 +20,7 @@ template<typename T>
 class Singleton : boost::noncopyable
 {
  public:
-  static T& instance()
+  static T& instance()//instance 实例
   {
     pthread_once(&ponce_, &Singleton::init);
     return *value_;
