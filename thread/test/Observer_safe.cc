@@ -29,7 +29,6 @@ class Observable
 
   void notifyObservers()
   {
-    //muduo 
     muduo::MutexLockGuard lock(mutex_);//加锁，解决问题2
     Iterator it = observers_.begin();
     while (it != observers_.end())
